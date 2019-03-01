@@ -1,0 +1,4 @@
+/resources
+/outputs
+/target
+**/*.rs.bk

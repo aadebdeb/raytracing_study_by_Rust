@@ -1,0 +1,10 @@
+[package]
+name = "raytracing_study"
+version = "0.1.0"
+authors = ["aadebdeb <aa.debdeb@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+rayon = "*"
+image = "*"
+rand = "*"
