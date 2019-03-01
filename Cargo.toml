@@ -1,7 +1,7 @@
 [package]
 name = "raytracing_study"
 version = "0.1.0"
-authors = ["aadebdeb <aa.debdeb@gmail.com>"]
+authors = ["aadebdeb"]
 edition = "2018"
 
 [dependencies]
