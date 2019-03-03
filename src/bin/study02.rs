@@ -10,20 +10,20 @@ use image::{ Rgb, RgbImage };
 
 use raytracing_study::{ vec3, Vector3, math };
 use raytracing_study::{ Camera, Ray, Scene, Primitive, Sphere, Rect };
-use raytracing_study::{ LambertMaterial, SpecularReflectionMaterial, SpecularTransmissionMaterial };
+use raytracing_study::{ LambertMaterial, MicrofacetReflectionMaterial };
 
 fn main() {
-    let (width, height) = (640, 480);
-    // let (width, height) = (1024, 768);
+    // let (width, height) = (640, 480);
+    let (width, height) = (1024, 768);
 
 
     let subpixel = 4;
     let inv_subpixel = 1.0 / (subpixel as f64);
-    let samples = 16;
+    let samples = 128;
 
     let scene = create_scene();
     let camera = create_camera(width, height);
-    let background = Background::new("./resources/ibl.jpg");
+    let background = Background::new("./resources/Brooklyn_Bridge_Planks/Brooklyn_Bridge_Planks_tmap.jpg");
 
     let mut image = RgbImage::new(width, height);
 
@@ -61,7 +61,7 @@ fn main() {
             }
         });
 
-    image.save("./outputs/study01.jpg").unwrap();
+    image.save("./outputs/study02.jpg").unwrap();
 }
 
 fn render(ray: &Ray, scene: &Scene, background: &Background, depth: u32) -> Vector3 {
@@ -84,20 +84,25 @@ fn render(ray: &Ray, scene: &Scene, background: &Background, depth: u32) -> Vect
 fn create_scene() -> Scene {
     let mut primitives = Vec::new();
 
-    let lambert_sphere = Sphere::new(vec3(2.0, 1.5, -2.0), -1.5);
-    let lambert_mat = LambertMaterial::new(vec3(0.8, 0.4, 0.4));
-    let lambert_prim = Primitive::new(Box::new(lambert_sphere), Arc::new(lambert_mat));
-    primitives.push(lambert_prim);
+    let ref_sphere1 = Sphere::new(vec3(1.5, 1.0, 1.5), 1.0);
+    let ref_mat1 = MicrofacetReflectionMaterial::new(vec3(0.5, 0.5, 0.9), math::PI / 32.0);
+    let ref_prim1 = Primitive::new(Box::new(ref_sphere1), Arc::new(ref_mat1));
+    primitives.push(ref_prim1);
 
-    let ref_sphere = Sphere::new(vec3(-1.2, 1.0, -1.2), 1.0);
-    let ref_mat = SpecularReflectionMaterial::new(vec3(0.9, 0.9, 0.9));
-    let ref_prim = Primitive::new(Box::new(ref_sphere), Arc::new(ref_mat));
-    primitives.push(ref_prim);
+    let ref_sphere2 = Sphere::new(vec3(-1.5, 1.0, 1.5), 1.0);
+    let ref_mat2 = MicrofacetReflectionMaterial::new(vec3(0.5, 0.5, 0.9), math::PI / 16.0);
+    let ref_prim2 = Primitive::new(Box::new(ref_sphere2), Arc::new(ref_mat2));
+    primitives.push(ref_prim2);
 
-    let trans_sphere = Sphere::new(vec3(0.0, 1.0, 1.2), 1.0);
-    let trans_mat = SpecularTransmissionMaterial::new(vec3(0.95, 0.95, 1.0), 1.5);
-    let trans_prim = Primitive::new(Box::new(trans_sphere), Arc::new(trans_mat));
-    primitives.push(trans_prim);
+    let ref_sphere3 = Sphere::new(vec3(1.5, 1.0, -1.5), 1.0);
+    let ref_mat3 = MicrofacetReflectionMaterial::new(vec3(0.5, 0.5, 0.9), math::PI / 8.0);
+    let ref_prim3 = Primitive::new(Box::new(ref_sphere3), Arc::new(ref_mat3));
+    primitives.push(ref_prim3);
+
+    let ref_sphere4 = Sphere::new(vec3(-1.5, 1.0, -1.5), 1.0);
+    let ref_mat4 = MicrofacetReflectionMaterial::new(vec3(0.5, 0.5, 0.9), math::PI / 4.0);
+    let ref_prim4 = Primitive::new(Box::new(ref_sphere4), Arc::new(ref_mat4));
+    primitives.push(ref_prim4);
 
     let rect = Rect::new(8.0, 8.0);
     let rect_mat = LambertMaterial::new(vec3(0.7, 0.7, 0.7));
@@ -110,8 +115,8 @@ fn create_scene() -> Scene {
 }
 
 fn create_camera(width: u32, height: u32) -> Camera {
-    let cam_origin = vec3(-3.0, 1.5, 2.5);
-    let cam_target = vec3(0.0, 0.5, 0.0);
+    let cam_origin = vec3(-5.0, 5.0, 5.0);
+    let cam_target = vec3(0.0, 1.0, 0.0);
     let cam_up = vec3(0.0, 1.0, 0.0);
     let camera = Camera::look_at(cam_origin, cam_target, cam_up, 60.0, (width as f64) / (height as f64));
     camera
