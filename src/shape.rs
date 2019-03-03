@@ -85,3 +85,88 @@ impl Shape for Rect {
         }
     }
 }
+
+pub struct Triangle {
+    positions: (Vector3, Vector3, Vector3),
+    normals: (Vector3, Vector3, Vector3),
+}
+
+impl Triangle {
+    pub fn new(positions: (Vector3, Vector3, Vector3), normals: (Vector3, Vector3, Vector3)) -> Triangle {
+        Triangle { positions, normals }
+    }
+}
+
+fn intersect_triangle(ray: &Ray, positions: (Vector3, Vector3, Vector3)) -> Option<f64> {
+    let e1 = positions.1 - positions.0;
+    let e2 = positions.2 - positions.0;
+    let alpha = ray.dir.cross(e2);
+    let det = e1.dot(alpha);
+    if det.abs() < 1e-6 {
+        return None;
+    }
+    let inv_det = 1.0 / det;
+    let r = ray.org - positions.0;
+
+    let u = alpha.dot(r) * inv_det;
+    if u < 0.0 || u > 1.0 {
+        return None;
+    }
+
+    let beta = r.cross(e1);
+
+    let v = ray.dir.dot(beta) * inv_det;
+    if v < 0.0 || u + v > 1.0 {
+        return None;
+    }
+
+    let t = e2.dot(beta) * inv_det;
+    if t < 0.0 {
+        return None;
+    }
+
+    Some(t)
+}
+
+pub fn interpolate_normal(pos: Vector3, positions: (Vector3, Vector3, Vector3), normals: (Vector3, Vector3, Vector3)) -> Vector3 {
+    let d0 = (positions.0 - pos).mag();
+    let d1 = (positions.1 - pos).mag();
+    let d2 = (positions.2 - pos).mag();
+    ((d1 + d2) * normals.0 + (d2 + d0) * normals.1 + (d0 + d1) * normals.2).norm()
+}
+
+impl Shape for Triangle {
+    fn hit(&self, ray: &Ray, tmin: f64, tmax: f64) -> Option<Intersection> {
+        intersect_triangle(ray, self.positions)
+            .filter(|t| *t > tmin && *t < tmax)
+            .map(|t| {
+                let pos = ray.at(t);
+                let normal = interpolate_normal(pos, self.positions, self.normals);
+                Intersection {
+                    t,
+                    wo: -ray.dir.norm(),
+                    pos,
+                    normal,
+                }
+            })
+    }
+}
+
+pub struct Aggregate {
+    shapes: Vec<Box<PShape>>,
+}
+
+impl Aggregate {
+    pub fn new(shapes: Vec<Box<PShape>>) -> Aggregate {
+        Aggregate {shapes}
+    }
+}
+
+impl Shape for Aggregate {
+    fn hit(&self, ray: &Ray, tmin: f64, tmax: f64) -> Option<Intersection> {
+        self.shapes.iter().fold(None, |res, shape| {
+            let t = res.as_ref().map_or(tmax, |isec| isec.t);
+            shape.hit(ray, tmin, t).or(res)
+        })
+    }
+}
