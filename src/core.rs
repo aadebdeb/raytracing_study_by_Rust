@@ -91,24 +91,37 @@ impl Camera {
     }
 }
 
-pub struct Aabb(pub Vector3, pub Vector3);
+pub struct Aabb {
+    pub min: Vector3,
+    pub max: Vector3,
+    center: Vector3,
+}
 
 impl Aabb {
+    pub fn new(min: Vector3, max: Vector3) -> Aabb {
+        let center = (min + max) * 0.5;
+        Aabb { min, max, center }
+    }
     pub fn area(&self) -> f64 {
-        let x = self.1.x - self.0.x;
-        let y = self.1.y - self.0.y;
-        let z = self.1.z - self.0.z;
+        let x = self.max.x - self.min.x;
+        let y = self.max.y - self.min.y;
+        let z = self.max.z - self.min.z;
         2.0 * (x * y + y * z + z * x)
     }
     pub fn merge(&self, other: &Aabb) -> Aabb {
-        Aabb(Vector3::min(self.0, other.0), Vector3::max(self.1, other.1))
+        Aabb::new(Vector3::min(self.min, other.min), Vector3::max(self.max, other.max))
+    }
+    pub fn center(&self) -> Vector3 {
+        self.center
     }
     pub fn hit(&self, ray: &Ray, tmin: f64, tmax: f64) -> bool {
+        let mut tmin = tmin;
+        let mut tmax = tmax;
         for i in 0..3 {
-            let t0 = (self.0[i] - ray.org[i]) / ray.dir[i];
-            let t1 = (self.1[i] - ray.org[i]) / ray.dir[i];
-            let tmin = t0.min(t1).max(tmin);
-            let tmax = t0.max(t1).min(tmax);
+            let t0 = (self.min[i] - ray.org[i]) / ray.dir[i];
+            let t1 = (self.max[i] - ray.org[i]) / ray.dir[i];
+            tmin = t0.min(t1).max(tmin);
+            tmax = t0.max(t1).min(tmax);
             if tmax <= tmin {
                 return false;
             }

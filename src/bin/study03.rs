@@ -19,7 +19,7 @@ fn main() {
 
     let subpixel = 4;
     let inv_subpixel = 1.0 / (subpixel as f64);
-    let samples = 1;
+    let samples = 16;
 
     let scene = create_scene();
     let camera = create_camera(width, height);

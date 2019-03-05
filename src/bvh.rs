@@ -5,15 +5,6 @@ use rand::random;
 use crate::Vector3;
 use crate::{ Ray, Primitive, PPrimitive, Intersection, PMaterial, Aabb };
 
-fn merge_aabb(primitives: &Vec<Box<PPrimitive>>) -> Aabb {
-    let min = Vector3::infinity();
-    let max = Vector3::neg_infinity();
-    primitives.iter().fold(Aabb(min, max), |aabb, primitive| {
-        aabb.merge(primitive.aabb())
-    })
-}
-
-
 enum BvhNode {
     Branch(Box<BvhNode>, Box<BvhNode>, Aabb),
     Leaf(Box<PPrimitive>),
@@ -27,15 +18,15 @@ impl BvhNode {
             return BvhNode::Leaf(primitives.remove(0));
         }
 
-        let aabb = merge_aabb(&primitives);
-
         let axis = (random::<f64>() * 3.0) as usize;
-        primitives.sort_by(|a, b| a.aabb().0[axis].partial_cmp(&b.aabb().0[axis]).unwrap());
+        primitives.sort_by(|a, b| a.aabb().center()[axis].partial_cmp(&b.aabb().center()[axis]).unwrap());
 
         let primitives2 = primitives.split_off(primitives.len() / 2);
 
         let child1 = BvhNode::new(primitives);
         let child2 = BvhNode::new(primitives2);
+
+        let aabb = child1.aabb().merge(child2.aabb());
 
         BvhNode::Branch(Box::new(child1), Box::new(child2), aabb)
     }

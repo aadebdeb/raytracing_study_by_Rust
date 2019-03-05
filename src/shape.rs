@@ -17,7 +17,7 @@ pub struct Sphere {
 
 impl Sphere {
     pub fn new(center: Vector3, radius: f64) -> Sphere {
-        let aabb = Aabb(center - radius, center + radius);
+        let aabb = Aabb::new(center - radius, center + radius);
         Sphere { center, radius, aabb }
     }
 }
@@ -66,7 +66,7 @@ impl Rect {
     pub fn new(width: f64, height: f64) -> Rect {
         let hw = 0.5 * width;
         let hh = 0.5 * height;
-        let aabb = Aabb(vec3(-hw, -0.01, -hh), vec3(hw, 0.01, hh));
+        let aabb = Aabb::new(vec3(-hw, -0.01, -hh), vec3(hw, 0.01, hh));
         Rect { width, height, aabb }
     }
 }
@@ -107,7 +107,7 @@ pub struct Triangle {
 
 impl Triangle {
     pub fn new(positions: (Vector3, Vector3, Vector3), normals: (Vector3, Vector3, Vector3)) -> Triangle {
-        let aabb = Aabb(
+        let aabb = Aabb::new(
             Vector3::min(positions.0, Vector3::min(positions.1, positions.2)),
             Vector3::max(positions.0, Vector3::max(positions.1, positions.2))
         );
