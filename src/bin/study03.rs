@@ -9,11 +9,11 @@ use rayon::prelude::*;
 use image::{ Rgb, RgbImage };
 
 use raytracing_study::{ vec3, Vector3, math, util };
-use raytracing_study::{ Camera, Ray, Scene, Primitive, Aggregate, PShape, Rect };
+use raytracing_study::{ Camera, Ray, Scene, PPrimitive, Geometry, Bvh, PShape, Rect };
 use raytracing_study::{ LambertMaterial };
 
 fn main() {
-    let (width, height) = (200, 100);
+    let (width, height) = (640, 480);
     // let (width, height) = (1024, 768);
 
 
@@ -82,18 +82,19 @@ fn render(ray: &Ray, scene: &Scene, background: &Background, depth: u32) -> Vect
 }
 
 fn create_scene() -> Scene {
-    let mut primitives = Vec::new();
+    let mut primitives: Vec<Box<PPrimitive>> = Vec::new();
 
-    let bunny = util::load_obj("./resources/bunny.obj").into_iter().map(|t| t as Box<PShape>).collect();
-    let bunny = Aggregate::new(bunny);
-    let bunny_mat = LambertMaterial::new(vec3(0.5, 0.5, 0.8));
-    let bunny_prim = Primitive::new(Box::new(bunny), Arc::new(bunny_mat));
-    primitives.push(bunny_prim);
+    let bunny_mat = Arc::new(LambertMaterial::new(vec3(0.5, 0.5, 0.8)));
+    let bunny = util::load_stl("./resources/Bunny-LowPoly.stl").into_iter()
+    // let bunny = util::load_obj("./resources/bunny.obj").into_iter()
+        .map(|t| Box::new(Geometry::new(t, bunny_mat.clone())) as Box<PPrimitive>).collect();
+    let bunny_prim = Bvh::new(bunny);
+    primitives.push(Box::new(bunny_prim));
 
     let rect = Rect::new(8.0, 8.0);
     let rect_mat = LambertMaterial::new(vec3(0.7, 0.7, 0.7));
-    let rect_prim = Primitive::new(Box::new(rect), Arc::new(rect_mat));
-    primitives.push(rect_prim);
+    let rect_prim = Geometry::new(Box::new(rect), Arc::new(rect_mat));
+    primitives.push(Box::new(rect_prim));
 
     let scene = Scene::new(primitives);
 
@@ -101,7 +102,7 @@ fn create_scene() -> Scene {
 }
 
 fn create_camera(width: u32, height: u32) -> Camera {
-    let cam_origin = vec3(-5.0, 5.0, 5.0);
+    let cam_origin = vec3(-100.0, 100.0, -100.0);
     let cam_target = vec3(0.0, 1.0, 0.0);
     let cam_up = vec3(0.0, 1.0, 0.0);
     let camera = Camera::look_at(cam_origin, cam_target, cam_up, 60.0, (width as f64) / (height as f64));

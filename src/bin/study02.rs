@@ -9,17 +9,17 @@ use rayon::prelude::*;
 use image::{ Rgb, RgbImage };
 
 use raytracing_study::{ vec3, Vector3, math };
-use raytracing_study::{ Camera, Ray, Scene, Primitive, Sphere, Rect };
+use raytracing_study::{ Camera, Ray, Scene, PPrimitive, Geometry, Sphere, Rect };
 use raytracing_study::{ LambertMaterial, MicrofacetReflectionMaterial };
 
 fn main() {
-    // let (width, height) = (640, 480);
-    let (width, height) = (1024, 768);
+    let (width, height) = (640, 480);
+    // let (width, height) = (1024, 768);
 
 
     let subpixel = 4;
     let inv_subpixel = 1.0 / (subpixel as f64);
-    let samples = 128;
+    let samples = 1;
 
     let scene = create_scene();
     let camera = create_camera(width, height);
@@ -82,32 +82,32 @@ fn render(ray: &Ray, scene: &Scene, background: &Background, depth: u32) -> Vect
 }
 
 fn create_scene() -> Scene {
-    let mut primitives = Vec::new();
+    let mut primitives: Vec<Box<PPrimitive>> = Vec::new();
 
     let ref_sphere1 = Sphere::new(vec3(1.5, 1.0, 1.5), 1.0);
     let ref_mat1 = MicrofacetReflectionMaterial::new(vec3(0.5, 0.5, 0.9), math::PI / 32.0);
-    let ref_prim1 = Primitive::new(Box::new(ref_sphere1), Arc::new(ref_mat1));
-    primitives.push(ref_prim1);
+    let ref_prim1 = Geometry::new(Box::new(ref_sphere1), Arc::new(ref_mat1));
+    primitives.push(Box::new(ref_prim1));
 
     let ref_sphere2 = Sphere::new(vec3(-1.5, 1.0, 1.5), 1.0);
     let ref_mat2 = MicrofacetReflectionMaterial::new(vec3(0.5, 0.5, 0.9), math::PI / 16.0);
-    let ref_prim2 = Primitive::new(Box::new(ref_sphere2), Arc::new(ref_mat2));
-    primitives.push(ref_prim2);
+    let ref_prim2 = Geometry::new(Box::new(ref_sphere2), Arc::new(ref_mat2));
+    primitives.push(Box::new(ref_prim2));
 
     let ref_sphere3 = Sphere::new(vec3(1.5, 1.0, -1.5), 1.0);
     let ref_mat3 = MicrofacetReflectionMaterial::new(vec3(0.5, 0.5, 0.9), math::PI / 8.0);
-    let ref_prim3 = Primitive::new(Box::new(ref_sphere3), Arc::new(ref_mat3));
-    primitives.push(ref_prim3);
+    let ref_prim3 = Geometry::new(Box::new(ref_sphere3), Arc::new(ref_mat3));
+    primitives.push(Box::new(ref_prim3));
 
     let ref_sphere4 = Sphere::new(vec3(-1.5, 1.0, -1.5), 1.0);
     let ref_mat4 = MicrofacetReflectionMaterial::new(vec3(0.5, 0.5, 0.9), math::PI / 4.0);
-    let ref_prim4 = Primitive::new(Box::new(ref_sphere4), Arc::new(ref_mat4));
-    primitives.push(ref_prim4);
+    let ref_prim4 = Geometry::new(Box::new(ref_sphere4), Arc::new(ref_mat4));
+    primitives.push(Box::new(ref_prim4));
 
     let rect = Rect::new(8.0, 8.0);
     let rect_mat = LambertMaterial::new(vec3(0.7, 0.7, 0.7));
-    let rect_prim = Primitive::new(Box::new(rect), Arc::new(rect_mat));
-    primitives.push(rect_prim);
+    let rect_prim = Geometry::new(Box::new(rect), Arc::new(rect_mat));
+    primitives.push(Box::new(rect_prim));
 
     let scene = Scene::new(primitives);
 

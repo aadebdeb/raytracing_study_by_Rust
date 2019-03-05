@@ -1,9 +1,10 @@
 use crate::{ vec3, Vector3 };
 use crate::math;
-use crate::{ Ray, Intersection };
+use crate::{ Ray, Intersection, Aabb };
 
 pub trait Shape {
     fn hit(&self, ray: &Ray, tmin: f64, tmax: f64) -> Option<Intersection>;
+    fn aabb(&self) -> &Aabb;
 }
 
 pub type PShape = dyn Shape + Sync + 'static;
@@ -11,11 +12,13 @@ pub type PShape = dyn Shape + Sync + 'static;
 pub struct Sphere {
     center: Vector3,
     radius: f64,
+    aabb: Aabb,
 }
 
 impl Sphere {
     pub fn new(center: Vector3, radius: f64) -> Sphere {
-        Sphere { center, radius }
+        let aabb = Aabb(center - radius, center + radius);
+        Sphere { center, radius, aabb }
     }
 }
 
@@ -47,17 +50,24 @@ impl Shape for Sphere {
             }
         })
     }
+    fn aabb(&self) -> &Aabb {
+        &self.aabb
+    }
 }
 
 
 pub struct Rect {
     width: f64,
     height: f64,
+    aabb: Aabb,
 }
 
 impl Rect {
     pub fn new(width: f64, height: f64) -> Rect {
-        Rect { width, height }
+        let hw = 0.5 * width;
+        let hh = 0.5 * height;
+        let aabb = Aabb(vec3(-hw, -0.01, -hh), vec3(hw, 0.01, hh));
+        Rect { width, height, aabb }
     }
 }
 
@@ -84,16 +94,24 @@ impl Shape for Rect {
             None
         }
     }
+    fn aabb(&self) -> &Aabb {
+        &self.aabb
+    }
 }
 
 pub struct Triangle {
     positions: (Vector3, Vector3, Vector3),
     normals: (Vector3, Vector3, Vector3),
+    aabb: Aabb,
 }
 
 impl Triangle {
     pub fn new(positions: (Vector3, Vector3, Vector3), normals: (Vector3, Vector3, Vector3)) -> Triangle {
-        Triangle { positions, normals }
+        let aabb = Aabb(
+            Vector3::min(positions.0, Vector3::min(positions.1, positions.2)),
+            Vector3::max(positions.0, Vector3::max(positions.1, positions.2))
+        );
+        Triangle { positions, normals, aabb }
     }
 }
 
@@ -150,23 +168,27 @@ impl Shape for Triangle {
                 }
             })
     }
-}
-
-pub struct Aggregate {
-    shapes: Vec<Box<PShape>>,
-}
-
-impl Aggregate {
-    pub fn new(shapes: Vec<Box<PShape>>) -> Aggregate {
-        Aggregate {shapes}
+    fn aabb(&self) -> &Aabb {
+        &self.aabb
     }
 }
 
-impl Shape for Aggregate {
-    fn hit(&self, ray: &Ray, tmin: f64, tmax: f64) -> Option<Intersection> {
-        self.shapes.iter().fold(None, |res, shape| {
-            let t = res.as_ref().map_or(tmax, |isec| isec.t);
-            shape.hit(ray, tmin, t).or(res)
-        })
-    }
-}
+// pub struct Aggregate {
+//     shapes: Vec<Box<PShape>>,
+//     aabb: Aabb,
+// }
+
+// impl Aggregate {
+//     pub fn new(shapes: Vec<Box<PShape>>) -> Aggregate {
+//         Aggregate {shapes}
+//     }
+// }
+
+// impl Shape for Aggregate {
+//     fn hit(&self, ray: &Ray, tmin: f64, tmax: f64) -> Option<Intersection> {
+//         self.shapes.iter().fold(None, |res, shape| {
+//             let t = res.as_ref().map_or(tmax, |isec| isec.t);
+//             shape.hit(ray, tmin, t).or(res)
+//         })
+//     }
+// }

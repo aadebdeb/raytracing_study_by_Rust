@@ -1,5 +1,6 @@
 use std::ops::{ Add, Sub, Mul, Div, Neg };
 use std::ops::{ AddAssign, SubAssign, MulAssign, DivAssign };
+use std::ops::{ Index, IndexMut };
 
 #[derive(Debug, Clone, Copy)]
 pub struct Vector3 {
@@ -14,6 +15,18 @@ impl Vector3 {
     }
     pub fn zero() -> Vector3 {
         Vector3::new(0.0, 0.0, 0.0)
+    }
+    pub fn infinity() -> Vector3 {
+        Vector3::new(std::f64::INFINITY, std::f64::INFINITY, std::f64::INFINITY)
+    }
+    pub fn neg_infinity() -> Vector3 {
+        Vector3::new(std::f64::NEG_INFINITY, std::f64::NEG_INFINITY, std::f64::NEG_INFINITY)
+    }
+    pub fn min(a: Vector3, b: Vector3) -> Vector3 {
+        Vector3::new(a.x.min(b.x), a.y.min(b.y), a.z.min(b.z))
+    }
+    pub fn max(a: Vector3, b: Vector3) -> Vector3 {
+        Vector3::new(a.x.max(b.x), a.y.max(b.y), a.z.max(b.z))
     }
     pub fn mag(self) -> f64 {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
@@ -160,6 +173,29 @@ impl DivAssign<f64> for Vector3 {
         self.x /= f;
         self.y /= f;
         self.z /= f;
+    }
+}
+
+impl Index<usize> for Vector3 {
+    type Output = f64;
+    fn index(&self, index: usize) -> &f64 {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            _ => panic!("index out of bounds: length of Vector3 is 3 but the index is {}", index),
+        }
+    }
+}
+
+impl IndexMut<usize> for Vector3 {
+    fn index_mut(&mut self, index: usize) -> &mut f64 {
+        match index {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            2 => &mut self.z,
+            _ => panic!("index out of bounds: length of Vector3 is 3 but the index is {}", index),
+        }
     }
 }
 

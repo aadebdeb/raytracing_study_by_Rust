@@ -26,11 +26,11 @@ pub struct Intersection {
 }
 
 pub struct Scene {
-    primitives: Vec<Primitive>,
+    primitives: Vec<Box<PPrimitive>>,
 }
 
 impl Scene {
-    pub fn new(primitives: Vec<Primitive>) -> Scene {
+    pub fn new(primitives: Vec<Box<PPrimitive>>) -> Scene {
         Scene { primitives }
     }
     pub fn hit(&self, ray: &Ray) -> Option<(Intersection, Arc<PMaterial>)> {
@@ -41,17 +41,30 @@ impl Scene {
     }
 }
 
-pub struct Primitive {
+pub trait Primitive {
+    fn hit(&self, ray: &Ray, tmin: f64, tmax: f64) -> Option<(Intersection, Arc<PMaterial>)>;
+    fn aabb(&self) -> &Aabb;
+}
+
+pub type PPrimitive = dyn Primitive + Sync + 'static;
+
+pub struct Geometry {
     shape: Box<PShape>,
     material: Arc<PMaterial>,
 }
 
-impl Primitive {
-    pub fn new(shape: Box<PShape>, material: Arc<PMaterial>) -> Primitive {
-        Primitive { shape, material }
+impl Geometry {
+    pub fn new(shape: Box<PShape>, material: Arc<PMaterial>) -> Geometry {
+        Geometry { shape, material }
     }
-    pub fn hit(&self, ray: &Ray, tmin: f64, tmax: f64) -> Option<(Intersection, Arc<PMaterial>)> {
+}
+
+impl Primitive for Geometry {
+    fn hit(&self, ray: &Ray, tmin: f64, tmax: f64) -> Option<(Intersection, Arc<PMaterial>)> {
         self.shape.hit(ray, tmin, tmax).map(|isec| (isec, self.material.clone()))
+    }
+    fn aabb(&self) -> &Aabb {
+        self.shape.aabb()
     }
 }
 
@@ -78,3 +91,28 @@ impl Camera {
     }
 }
 
+pub struct Aabb(pub Vector3, pub Vector3);
+
+impl Aabb {
+    pub fn area(&self) -> f64 {
+        let x = self.1.x - self.0.x;
+        let y = self.1.y - self.0.y;
+        let z = self.1.z - self.0.z;
+        2.0 * (x * y + y * z + z * x)
+    }
+    pub fn merge(&self, other: &Aabb) -> Aabb {
+        Aabb(Vector3::min(self.0, other.0), Vector3::max(self.1, other.1))
+    }
+    pub fn hit(&self, ray: &Ray, tmin: f64, tmax: f64) -> bool {
+        for i in 0..3 {
+            let t0 = (self.0[i] - ray.org[i]) / ray.dir[i];
+            let t1 = (self.1[i] - ray.org[i]) / ray.dir[i];
+            let tmin = t0.min(t1).max(tmin);
+            let tmax = t0.max(t1).min(tmax);
+            if tmax <= tmin {
+                return false;
+            }
+        }
+        true
+    }
+}

@@ -9,7 +9,7 @@ use rayon::prelude::*;
 use image::{ Rgb, RgbImage };
 
 use raytracing_study::{ vec3, Vector3, math };
-use raytracing_study::{ Camera, Ray, Scene, Primitive, Sphere, Rect };
+use raytracing_study::{ Camera, Ray, Scene, PPrimitive, Geometry, Sphere, Rect };
 use raytracing_study::{ LambertMaterial, SpecularReflectionMaterial, SpecularTransmissionMaterial };
 
 fn main() {
@@ -82,27 +82,27 @@ fn render(ray: &Ray, scene: &Scene, background: &Background, depth: u32) -> Vect
 }
 
 fn create_scene() -> Scene {
-    let mut primitives = Vec::new();
+    let mut primitives: Vec<Box<PPrimitive>> = Vec::new();
 
     let lambert_sphere = Sphere::new(vec3(2.0, 1.5, -2.0), -1.5);
     let lambert_mat = LambertMaterial::new(vec3(0.8, 0.4, 0.4));
-    let lambert_prim = Primitive::new(Box::new(lambert_sphere), Arc::new(lambert_mat));
-    primitives.push(lambert_prim);
+    let lambert_prim = Geometry::new(Box::new(lambert_sphere), Arc::new(lambert_mat));
+    primitives.push(Box::new(lambert_prim));
 
     let ref_sphere = Sphere::new(vec3(-1.2, 1.0, -1.2), 1.0);
     let ref_mat = SpecularReflectionMaterial::new(vec3(0.9, 0.9, 0.9));
-    let ref_prim = Primitive::new(Box::new(ref_sphere), Arc::new(ref_mat));
-    primitives.push(ref_prim);
+    let ref_prim = Geometry::new(Box::new(ref_sphere), Arc::new(ref_mat));
+    primitives.push(Box::new(ref_prim));
 
     let trans_sphere = Sphere::new(vec3(0.0, 1.0, 1.2), 1.0);
     let trans_mat = SpecularTransmissionMaterial::new(vec3(0.95, 0.95, 1.0), 1.5);
-    let trans_prim = Primitive::new(Box::new(trans_sphere), Arc::new(trans_mat));
-    primitives.push(trans_prim);
+    let trans_prim = Geometry::new(Box::new(trans_sphere), Arc::new(trans_mat));
+    primitives.push(Box::new(trans_prim));
 
     let rect = Rect::new(8.0, 8.0);
     let rect_mat = LambertMaterial::new(vec3(0.7, 0.7, 0.7));
-    let rect_prim = Primitive::new(Box::new(rect), Arc::new(rect_mat));
-    primitives.push(rect_prim);
+    let rect_prim = Geometry::new(Box::new(rect), Arc::new(rect_mat));
+    primitives.push(Box::new(rect_prim));
 
     let scene = Scene::new(primitives);
 

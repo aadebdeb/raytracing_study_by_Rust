@@ -7,8 +7,9 @@ pub mod math;
 pub mod util;
 
 pub use self::vector3::Vector3;
-pub use self::core::{ Camera, Scene, Ray, Intersection, Primitive };
-pub use self::shape::{ Shape, PShape, Aggregate, Sphere, Rect, Triangle };
+pub use self::core::{ Camera, Scene, Ray, Intersection, Primitive, PPrimitive, Geometry, Aabb };
+pub use self::bvh::Bvh;
+pub use self::shape::{ Shape, PShape, Sphere, Rect, Triangle };
 pub use self::material::{ 
     Material, PMaterial, LambertMaterial,
     SpecularReflectionMaterial, SpecularTransmissionMaterial,
