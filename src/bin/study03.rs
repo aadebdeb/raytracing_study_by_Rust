@@ -8,22 +8,21 @@ use std::sync::{ Arc, Mutex };
 use rayon::prelude::*;
 use image::{ Rgb, RgbImage };
 
-use raytracing_study::{ vec3, Vector3, math, util };
-use raytracing_study::{ Camera, Ray, Scene, PPrimitive, Geometry, Bvh, PShape, Rect };
+use raytracing_study::{ vec3, Vector3, Transform, math, util };
+use raytracing_study::{ Camera, Ray, Scene, PPrimitive, Geometry, TransformedPrimitive, Bvh, PShape, Rect };
 use raytracing_study::{ LambertMaterial };
 
 fn main() {
-    let (width, height) = (640, 480);
-    // let (width, height) = (1024, 768);
-
+    // let (width, height) = (640, 480);
+    let (width, height) = (1024, 768);
 
     let subpixel = 4;
     let inv_subpixel = 1.0 / (subpixel as f64);
-    let samples = 16;
+    let samples = 100;
 
     let scene = create_scene();
     let camera = create_camera(width, height);
-    let background = Background::new("./resources/Brooklyn_Bridge_Planks/Brooklyn_Bridge_Planks_tmap.jpg");
+    let background = Background::new("./resources/Ridgecrest_Road/Ridgecrest_Road_4k_Bg.jpg");
 
     let mut image = RgbImage::new(width, height);
 
@@ -84,14 +83,16 @@ fn render(ray: &Ray, scene: &Scene, background: &Background, depth: u32) -> Vect
 fn create_scene() -> Scene {
     let mut primitives: Vec<Box<PPrimitive>> = Vec::new();
 
-    let bunny_mat = Arc::new(LambertMaterial::new(vec3(0.5, 0.5, 0.8)));
+    let bunny_mat = Arc::new(LambertMaterial::new(vec3(0.95, 0.5, 0.5)));
     let bunny = util::load_stl("./resources/Bunny-LowPoly.stl").into_iter()
     // let bunny = util::load_obj("./resources/bunny.obj").into_iter()
         .map(|t| Box::new(Geometry::new(t, bunny_mat.clone())) as Box<PPrimitive>).collect();
     let bunny_prim = Bvh::new(bunny);
+   let bunny_transform = Transform::rotate_x(-90.0).transform(&Transform::translate(-50.0, 0.0, 0.0));
+    let bunny_prim = TransformedPrimitive::new(Box::new(bunny_prim), bunny_transform);
     primitives.push(Box::new(bunny_prim));
 
-    let rect = Rect::new(8.0, 8.0);
+    let rect = Rect::new(200.0, 200.0);
     let rect_mat = LambertMaterial::new(vec3(0.7, 0.7, 0.7));
     let rect_prim = Geometry::new(Box::new(rect), Arc::new(rect_mat));
     primitives.push(Box::new(rect_prim));
@@ -102,8 +103,8 @@ fn create_scene() -> Scene {
 }
 
 fn create_camera(width: u32, height: u32) -> Camera {
-    let cam_origin = vec3(-100.0, 100.0, -100.0);
-    let cam_target = vec3(0.0, 1.0, 0.0);
+    let cam_origin = vec3(-150.0, 100.0, 150.0);
+    let cam_target = vec3(0.0, 50.0, 0.0);
     let cam_up = vec3(0.0, 1.0, 0.0);
     let camera = Camera::look_at(cam_origin, cam_target, cam_up, 60.0, (width as f64) / (height as f64));
     camera

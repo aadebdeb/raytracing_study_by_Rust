@@ -3,6 +3,7 @@ use std::sync::Arc;
 use crate::Vector3;
 use crate::PShape;
 use crate::PMaterial;
+use crate::Transform;
 
 pub struct Ray {
     pub org: Vector3,
@@ -71,6 +72,38 @@ impl Primitive for Geometry {
 pub struct Camera {
     origin: Vector3,
     basis: (Vector3, Vector3, Vector3),
+}
+
+pub struct TransformedPrimitive {
+    primitive: Box<PPrimitive>,
+    transform: Transform,
+    inv_transform: Transform,
+    aabb: Aabb,
+}
+
+impl TransformedPrimitive {
+    pub fn new(primitive: Box<PPrimitive>, transform: Transform) -> TransformedPrimitive {
+        let inv_transform = transform.inverse();
+        let aabb = transform.aabb(primitive.aabb());
+        TransformedPrimitive { primitive, transform, inv_transform, aabb }
+    }
+}
+
+impl Primitive for TransformedPrimitive {
+    fn hit(&self, ray: &Ray, tmin: f64, tmax: f64) -> Option<(Intersection, Arc<PMaterial>)> {
+        let inv_ray = self.inv_transform.ray(ray);
+        self.primitive.hit(&inv_ray, tmin, tmax).map(|(isec, material)| {
+            (Intersection {
+                t: isec.t,
+                wo: self.transform.vector(isec.wo),
+                pos: self.transform.point(isec.pos),
+                normal: self.transform.normal(isec.normal),
+            }, material)
+        })
+    }
+    fn aabb(&self) -> &Aabb {
+        &self.aabb
+    }
 }
 
 impl Camera {
