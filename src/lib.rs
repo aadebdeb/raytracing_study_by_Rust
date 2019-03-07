@@ -17,7 +17,8 @@ pub use self::shape::{ Shape, PShape, Sphere, Rect, Triangle };
 pub use self::material::{ 
     Material, PMaterial, LambertMaterial,
     SpecularReflectionMaterial, SpecularTransmissionMaterial,
-    MicrofacetReflectionMaterial};
+    MicrofacetReflectionMaterial,
+    FresnelBlendMaterial};
 
 pub fn vec3(x: f64, y: f64, z: f64) -> Vector3 {
     Vector3::new(x, y, z)

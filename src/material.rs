@@ -195,3 +195,40 @@ impl Material for MicrofacetReflectionMaterial {
 //         Some(Bsdf { value, wi, pdf })
 //     }
 // }
+
+pub struct FresnelBlendMaterial {
+    diffuse: Vector3,
+    specular: Vector3,
+    roughness: f64,
+}
+
+impl FresnelBlendMaterial {
+    pub fn new(diffuse: Vector3, specular: Vector3, roughness: f64) -> FresnelBlendMaterial {
+        FresnelBlendMaterial { diffuse, specular, roughness }
+    }
+    fn schlick_fresnel(&self, cosine: f64) -> Vector3 {
+        self.specular + (1.0 - self.specular) * math::pow5(1.0 - cosine)
+    }
+}
+
+impl Material for FresnelBlendMaterial {
+    fn bsdf(&self, isec: &Intersection, wi: Vector3) -> Vector3 {
+        let wh = (isec.wo + wi).norm();
+        let dot_no = isec.normal.dot(isec.wo);
+        let dot_ni = isec.normal.dot(wi);
+        let dot_hi = wh.dot(wi);
+
+        let diffuse = (28.0 / (23.0 * math::PI)) * self.diffuse * (1.0 - self.specular)
+            * (1.0 - math::pow5(1.0 - 0.5 * dot_no)) * (1.0 - math::pow5(1.0 - 0.5 * dot_ni));
+        let d = ggx_distribution(wh, isec.normal, self.roughness);
+        let f = self.schlick_fresnel(dot_hi);
+        let specular = d * f / (4.0 * dot_hi * dot_no.max(dot_ni));
+        diffuse + specular
+    }
+    fn sample(&self, isec: &Intersection) -> Option<Bsdf> {
+        let (dir, pdf) = math::sample_random_cosine_dir();
+        let wi = math::change_basis(dir, isec.normal);
+        let value = self.bsdf(isec, wi);
+        Some(Bsdf { value, wi, pdf })
+    }
+}
