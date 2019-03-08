@@ -76,6 +76,34 @@ impl Transform {
         Transform::new(mat, inv_mat)
     }
 
+    pub fn rotate_y(degree: f64) -> Transform {
+        let r = degree.to_radians();
+        let c = r.cos();
+        let s = r.sin();
+        let mat = Matrix4::new(
+            c, 0.0, s, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            -s, 0.0, c, 0.0,
+            0.0, 0.0, 0.0, 1.0
+        );
+        let inv_mat = mat.transpose();
+        Transform::new(mat, inv_mat)
+    }
+
+    pub fn rotate_z(degree: f64) -> Transform {
+        let r = degree.to_radians();
+        let c = r.cos();
+        let s = r.sin();
+        let mat = Matrix4::new(
+            c, -s, 0.0, 0.0,
+            s, c, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0
+        );
+        let inv_mat = mat.transpose();
+        Transform::new(mat, inv_mat)
+    }
+
     pub fn vector(&self, v: Vector3) -> Vector3 {
         Vector3::new(
             self.mat[0][0] * v.x + self.mat[0][1] * v.y + self.mat[0][2] * v.z,

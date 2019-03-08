@@ -13,6 +13,9 @@ pub type PMaterial = dyn Material + Sync + Send + 'static;
 pub trait Material {
     fn bsdf(&self, isec: &Intersection, wi: Vector3) -> Vector3;
     fn sample(&self, isec: &Intersection) -> Option<Bsdf>;
+    fn emit(&self, isec: &Intersection) -> Vector3 {
+        vec3(0.0, 0.0, 0.0)
+    }
 }
 
 pub struct LambertMaterial {
@@ -232,3 +235,30 @@ impl Material for FresnelBlendMaterial {
         Some(Bsdf { value, wi, pdf })
     }
 }
+
+pub struct IlluminantMaterial {
+    emission: Vector3,
+}
+
+impl IlluminantMaterial {
+    pub fn new(emission: Vector3) -> IlluminantMaterial {
+        IlluminantMaterial { emission }
+    }
+}
+
+impl Material for IlluminantMaterial {
+    fn bsdf(&self, isec: &Intersection, wi: Vector3) -> Vector3 {
+        vec3(0.0, 0.0, 0.0)
+    }
+    fn sample(&self, isec: &Intersection) -> Option<Bsdf> {
+        None
+    }
+    fn emit(&self, isec: &Intersection) -> Vector3 {
+        if isec.normal.dot(isec.wo) > 0.0 {
+           self.emission
+        } else {
+            Vector3::zero()
+        }
+    }
+}
+

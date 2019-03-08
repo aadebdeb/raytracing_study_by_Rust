@@ -16,6 +16,7 @@ pub use self::bvh::Bvh;
 pub use self::shape::{ Shape, PShape, Sphere, Rect, Triangle };
 pub use self::material::{ 
     Material, PMaterial, LambertMaterial,
+    IlluminantMaterial,
     SpecularReflectionMaterial, SpecularTransmissionMaterial,
     MicrofacetReflectionMaterial,
     FresnelBlendMaterial};
