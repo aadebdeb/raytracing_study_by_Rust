@@ -5,6 +5,7 @@ use crate::PShape;
 use crate::PMaterial;
 use crate::Transform;
 
+#[derive(Debug, Clone)]
 pub struct Ray {
     pub org: Vector3,
     pub dir: Vector3,

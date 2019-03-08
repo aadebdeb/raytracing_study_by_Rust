@@ -16,6 +16,9 @@ impl Vector3 {
     pub fn zero() -> Vector3 {
         Vector3::new(0.0, 0.0, 0.0)
     }
+    pub fn one() -> Vector3 {
+        Vector3::new(1.0, 1.0, 1.0)
+    }
     pub fn infinity() -> Vector3 {
         Vector3::new(std::f64::INFINITY, std::f64::INFINITY, std::f64::INFINITY)
     }
