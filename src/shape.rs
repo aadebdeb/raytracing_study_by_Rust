@@ -5,6 +5,9 @@ use crate::{ Ray, Intersection, Aabb };
 pub trait Shape {
     fn hit(&self, ray: &Ray, tmin: f64, tmax: f64) -> Option<Intersection>;
     fn aabb(&self) -> &Aabb;
+    fn sample(&self) -> (Vector3, f64) {
+        panic!("sample method has not implemented");
+    }
 }
 
 pub type PShape = dyn Shape + Sync + 'static;
@@ -96,6 +99,13 @@ impl Shape for Rect {
     }
     fn aabb(&self) -> &Aabb {
         &self.aabb
+    }
+    fn sample(&self) -> (Vector3, f64) {
+        let hw = 0.5 * self.width;
+        let hh = 0.5 * self.height;
+        let pos = vec3(rand::random::<f64>() * self.width - hw, 0.0, rand::random::<f64>() * self.height - hh);
+        let prob = 1.0 / (self.width * self.height);
+        (pos, prob)
     }
 }
 

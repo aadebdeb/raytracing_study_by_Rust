@@ -46,6 +46,9 @@ impl Scene {
 pub trait Primitive {
     fn hit(&self, ray: &Ray, tmin: f64, tmax: f64) -> Option<(Intersection, Arc<PMaterial>)>;
     fn aabb(&self) -> &Aabb;
+    fn sample(&self) -> (Vector3, f64) {
+        panic!("sample method has not implemented")
+    }
 }
 
 pub type PPrimitive = dyn Primitive + Sync + 'static;
@@ -67,6 +70,9 @@ impl Primitive for Geometry {
     }
     fn aabb(&self) -> &Aabb {
         self.shape.aabb()
+    }
+    fn sample(&self) -> (Vector3, f64) {
+        self.shape.sample()
     }
 }
 
@@ -104,6 +110,10 @@ impl Primitive for TransformedPrimitive {
     }
     fn aabb(&self) -> &Aabb {
         &self.aabb
+    }
+    fn sample(&self) -> (Vector3, f64) {
+        let (pos, prob) = self.primitive.sample();
+        (self.transform.point(pos), prob)
     }
 }
 
